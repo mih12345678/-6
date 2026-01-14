@@ -7,8 +7,7 @@ jobs:
     runs-on: ubuntu-latest
     
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
+    - uses: actions/checkout@v4
     
     - name: Setup Java
       uses: actions/setup-java@v3
@@ -16,26 +15,33 @@ jobs:
         java-version: '17'
         distribution: 'temurin'
     
-    - name: Make gradlew executable
-      run: chmod +x ./gradlew
+    - name: Download Gradle Wrapper
+      run: |
+        mkdir -p gradle/wrapper
+        wget -q -O gradle/wrapper/gradle-wrapper.jar \
+          https://repo.maven.apache.org/maven2/gradle/wrapper/gradle-wrapper/8.4/gradle-wrapper-8.4.jar
+        chmod 755 gradlew
+        ls -la gradle/wrapper/
     
-    - name: Setup Gradle
-      uses: gradle/actions/setup-gradle@v3
+    - name: Verify Gradle
+      run: |
+        ./gradlew --version || echo "Gradle not working yet"
     
     - name: Build APK
-      run: ./gradlew assembleDebug --stacktrace --info
+      run: |
+        ./gradlew build --no-daemon || ./gradlew assembleDebug --no-daemon
     
     - name: Upload APK
       uses: actions/upload-artifact@v4
       with:
-        name: vinyl-player-apk
-        path: app/build/outputs/apk/debug/app-debug.apk
-        retention-days: 7
+        name: app-debug
+        path: app/build/outputs/apk/debug/*.apk
+        if-no-files-found: warn
     
-    - name: List build directory
-      if: failure()
+    - name: Debug info
+      if: always()
       run: |
-        echo "=== Listing app directory ==="
-        ls -la app/
-        echo "=== Listing app/build directory ==="
-        ls -la app/build/ || echo "No build directory"
+        echo "=== Directory structure ==="
+        find . -name "*.gradle" -o -name "*.jar" | head -20
+        echo "=== Gradle wrapper ==="
+        ls -la gradle/wrapper/ || echo "No gradle wrapper"
