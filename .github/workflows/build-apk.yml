@@ -44,4 +44,4 @@ jobs:
         echo "=== Directory structure ==="
         find . -name "*.gradle" -o -name "*.jar" | head -20
         echo "=== Gradle wrapper ==="
-        ls -la gradle/wrapper/ || echo "No gradle wrapper"
+        ls -la gradle/wrapper/ || echo "No gradle wrapper" 
